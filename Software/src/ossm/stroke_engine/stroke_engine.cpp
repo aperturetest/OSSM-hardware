@@ -38,6 +38,9 @@ static void startStrokeEngineTask(void *pvParameters) {
     Stroker.setDepth(0.01f * settings.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * settings.stroke * abs(measuredStrokeMm), true);
 
+    Stroker.setPattern(settings.pattern, false);
+    lastSetting.pattern = settings.pattern;
+
     auto isInCorrectState = []() {
         // Add any states that you want to support here.
         return stateMachine->is("strokeEngine"_s) ||
@@ -68,7 +71,7 @@ static void startStrokeEngineTask(void *pvParameters) {
             float newStroke = 0.01f * settings.stroke * abs(measuredStrokeMm);
             ESP_LOGD("UTILS", "change stroke: %f %f", settings.stroke,
                      newStroke);
-            Stroker.setStroke(newStroke, true);
+            Stroker.setStroke(newStroke, false);
             lastSetting.stroke = settings.stroke;
         }
 

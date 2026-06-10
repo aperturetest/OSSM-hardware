@@ -61,6 +61,7 @@ void ossmResetSettingsStrokeEngine() {
     settings.stroke = 50;
     settings.depth = 10;
     settings.sensation = 50;
+    settings.pattern = StrokePatterns::SimpleStroke;
     session.playControl = PlayControls::DEPTH;
 
     // Prepare the encoder
