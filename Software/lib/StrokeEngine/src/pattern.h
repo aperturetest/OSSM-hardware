@@ -35,6 +35,7 @@ enum class StrokePatterns {
     ProgressiveStroke,
     RandomStroke,
     PoinStroke,
+    InsistOld,
     //Add additional strokes here
     Count
 };
@@ -617,10 +618,52 @@ class Insist : public Pattern {
 
 /**************************************************************************/
 /*!
-  @brief  Sensation reduces the effective stroke length while sweeping the 
+  @brief  Sensation reduces the effective stroke length while sweeping the
   full range of the stroke. Produces a vibrating stroke at high speeds.
 */
 /**************************************************************************/
+/**************************************************************************/
+/*!
+  @brief  Bring back previous Insist. Alternates between a full stroke and a
+  short stroke clustered at one end. High sensation clusters at the front (deep end),
+  low at the back (shallow end). Higher sensation magnitude makes the short stroke
+  snappier. At sensation 0 both strokes are equal length.
+*/
+/**************************************************************************/
+class InsistOld : public Pattern {
+  public:
+    void setSensation(float sensation) {
+        _sensation = sensation;
+        _strokeFraction = std::max((100.0f - abs(sensation)) / 100.0f, 0.01f);
+        _strokeInFront = (sensation > 0);
+    }
+    void setSpeed(float speed = 0) {
+        _speed = speed;
+        _timeOfStroke = std::max(1.5f * (float)_stroke / _speed, 0.1f);
+    }
+    void setStroke(int stroke) {
+        _stroke = stroke;
+        _timeOfStroke = std::max(1.5f * (float)_stroke / _speed, 0.1f);
+    }
+    motionParameter nextTarget(unsigned int index) {
+        _nextMove.speed = int(_speed);
+        // Scale acceleration inversely with stroke fraction so short strokes
+        // complete proportionally faster (snappy taps at the clustered end).
+        _nextMove.acceleration = int(3.0f * _speed / (_timeOfStroke * _strokeFraction));
+        int realStroke = int((float)_stroke * _strokeFraction);
+        if (_strokeInFront) {
+            _nextMove.stroke = (index % 2) ? _depth - realStroke : _depth;
+        } else {
+            _nextMove.stroke = (index % 2) ? _depth - _stroke : (_depth - _stroke) + realStroke;
+        }
+        _index = index;
+        return _nextMove;
+    }
+  protected:
+    float _strokeFraction = 1.0f;
+    bool _strokeInFront = false;
+};
+
 class ProgressiveStroke : public Pattern {
   public:
     void setSensation(float sensation) {
@@ -751,6 +794,8 @@ inline Pattern* Pattern::Create(StrokePatterns pattern){
             return new RandomStroke();
         case StrokePatterns::PoinStroke:
             return new PointStroke();
+        case StrokePatterns::InsistOld:
+            return new InsistOld();
         default:
             return new SimpleStroke();
     }

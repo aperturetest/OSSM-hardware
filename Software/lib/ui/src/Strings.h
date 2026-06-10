@@ -129,12 +129,13 @@ namespace ui {
         static const char patternName7[] PROGMEM = "Progressive Stroke";
         static const char patternName8[] PROGMEM = "Random Stroke";
         static const char patternName9[] PROGMEM = "Go to Point";
+        static const char patternName10[] PROGMEM = "Insist Old";
 
-        static const char* const strokeEngineNames[10] = {
+        static const char* const strokeEngineNames[11] = {
                 patternName0, patternName1, patternName2,
                 patternName3, patternName4, patternName5,
                 patternName6, patternName7, patternName8,
-                patternName9,
+                patternName9, patternName10,
         };
 
         // ============================================================
