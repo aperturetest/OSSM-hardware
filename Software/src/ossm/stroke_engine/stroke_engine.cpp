@@ -59,7 +59,8 @@ static void startStrokeEngineTask(void *pvParameters) {
             float exp = UserConfig::strokeEngineSpeedCurve;
             float speed = settings.speed/100;
             speed = pow( 1 - pow( 1 - speed, exp), 1 / exp) * 100;
-            Stroker.setSpeed(speed, true);
+            bool applyNow = isChangeSignificant(lastSetting.speed, settings.speed);
+            Stroker.setSpeed(speed, applyNow);
             lastSetting.speed = settings.speed;
         }
 
