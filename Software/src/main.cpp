@@ -88,8 +88,13 @@ void __attribute__((weak)) setup() {
                     !initialized) {
                     ESP_LOGD("MAIN", "Initializing communication services");
                     initNimble();
+#ifndef DISABLE_WIFI
                     initWM();
+                    for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) {
+                        vTaskDelay(pdMS_TO_TICKS(500));
+                    }
                     initMQTT();
+#endif
                     initialized = true;
                     vTaskDelete(nullptr);
                 }

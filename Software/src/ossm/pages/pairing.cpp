@@ -2,6 +2,7 @@
 
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 
 #include <ArduinoJson.h>
 
@@ -48,9 +49,12 @@ static void pairingTask(void *pvParameters) {
 
     String macAddress = WiFi.macAddress();
 
+    WiFiClientSecure client;
+    client.setInsecure();
+
     HTTPClient http;
     String url = String(RAD_SERVER) + "/api/ossm/auth";
-    http.begin(url);
+    http.begin(client, url);
     http.addHeader("Content-Type", "application/json");
 
     JsonDocument doc;

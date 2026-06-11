@@ -52,6 +52,11 @@ void event_disconnected_handler(void* handler_args, esp_event_base_t base,
 }
 
 void initMQTT() {
+    if (WiFi.status() != WL_CONNECTED) {
+        ESP_LOGW("MQTT", "WiFi not connected, skipping MQTT init");
+        return;
+    }
+
     delay(2000);
 
     ESP_LOGD("MQTT", "Initializing MQTT");

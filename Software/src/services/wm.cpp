@@ -11,6 +11,7 @@ Preferences wifiPrefs;
 
 void initWM() {
     WiFi.useStaticBuffers(true);
+    WiFi.setMinSecurity(WIFI_AUTH_WPA2_PSK);
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
 
     wm.setSaveConfigCallback([]() {
@@ -20,7 +21,20 @@ void initWM() {
 #if defined(WIFI_SSID) && defined(WIFI_PASSWORD)
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 #else
-    WiFi.begin();
+    Preferences prefs;
+    if (prefs.begin("wifi", true)) {
+        String ssid = prefs.getString("ssid", "");
+        String password = prefs.getString("password", "");
+        prefs.end();
+        if (ssid.length() > 0) {
+            WiFi.begin(ssid.c_str(), password.c_str());
+        } else {
+            // Fall back to ESP32's built-in credential storage (e.g. saved by captive portal)
+            WiFi.begin();
+        }
+    } else {
+        WiFi.begin();
+    }
 #endif
 
     ESP_LOGI("WM", "WiFi initialization complete, status: %d", WiFi.status());
