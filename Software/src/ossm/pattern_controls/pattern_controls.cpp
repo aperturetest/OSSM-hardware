@@ -19,8 +19,8 @@ using namespace sml;
 
 namespace pattern_controls {
 
-static size_t numberOfDescriptions = sizeof(ui::strings::strokeEngineDescriptions);
-static size_t numberOfPatterns = sizeof(ui::strings::strokeEngineNames);
+static size_t numberOfDescriptions = sizeof(ui::strings::strokeEngineDescriptions) / sizeof(ui::strings::strokeEngineDescriptions[0]);
+static size_t numberOfPatterns = (size_t)StrokePatterns::Count;
 
 static void drawPatternControlsTask(void *pvParameters) {
     auto isInCorrectState = []() {
