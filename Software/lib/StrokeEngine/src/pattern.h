@@ -564,55 +564,43 @@ class Insist : public Pattern {
   public:
     void setSensation(float sensation) {
         _sensation = sensation;
-        // maps sensation to useful values [2,22] with 12 beeing neutral
-        if (sensation < 0) {
-            _countStrokesForRamp = map(sensation, -100, 0, 2, 11);
-        } else {
-            _countStrokesForRamp = map(sensation, 0, 100, 11, 32);
-        }
-#ifdef DEBUG_PATTERN
-        Serial.println("_countStrokesForRamp: " + String(_countStrokesForRamp));
-#endif
+        _strokeFraction = (100 - abs(sensation)) / 100.0f;
+        _strokeInFront = (sensation > 0);
+        _updateStrokeTiming();
     }
     void setSpeed(float speed = 0) {
         _speed = speed;
-        // time of a trapezoidal motion maximizing at speed
         _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _updateStrokeTiming();
     }
     void setStroke(int stroke) {
         _stroke = stroke;
-        // time of a trapezoidal motion maximizing at speed
         _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _updateStrokeTiming();
     }
     motionParameter nextTarget(unsigned int index) {
-        _nextMove.speed = int(_speed);
-        // acceleration to meet the profile
-        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
-        // odd stroke is moving out
-        if (index % 2) {
-            _nextMove.stroke = _depth;
-        // even stroke is moving in
+        _nextMove.speed = _peakSpeed;
+        _nextMove.acceleration = _acceleration;
+        if (_strokeInFront) {
+            _nextMove.stroke = (index % 2) ? _depth - _realStroke : _depth;
         } else {
-            // How many steps is each stroke advancing
-            int slope = min(_stroke,_depth) / (_countStrokesForRamp);
-            // The pattern recycles so we use modulo to get a cycling index.
-            // Factor 2 because index increments with each full stroke twice
-            // add 1 because modulo = 0 is index = 1
-            int cycleIndex = (index / 2) % _countStrokesForRamp + 1;
-            // This might be not smooth, as the insertion depth may jump when
-            // sensation is adjusted.
-            int amplitude = slope * (_countStrokesForRamp - cycleIndex);
-#ifdef DEBUG_PATTERN
-            Serial.println("amplitude: " + String(amplitude) +
-                        " cycleIndex: " + String(cycleIndex));
-#endif
-            _nextMove.stroke = _depth - amplitude;
+            _nextMove.stroke = (index % 2) ? _depth - _stroke : (_depth - _stroke) + _realStroke;
         }
         _index = index;
         return _nextMove;
     }
   protected:
-    int _countStrokesForRamp = 2;
+    int _peakSpeed = 0;
+    int _acceleration = 0;
+    int _realStroke = 0;
+    float _strokeFraction = 1.0f;
+    bool _strokeInFront = false;
+    float _timeOfStroke = 1.0f;
+    void _updateStrokeTiming() {
+        _peakSpeed = int(1.5 * _stroke / _timeOfStroke);
+        _acceleration = int(3.0 * _peakSpeed / (_timeOfStroke * max(_strokeFraction, 0.01f)));
+        _realStroke = int((float)_stroke * _strokeFraction);
+    }
 };
 
 /**************************************************************************/
