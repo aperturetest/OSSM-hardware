@@ -88,8 +88,8 @@ void __attribute__((weak)) setup() {
                     !initialized) {
                     ESP_LOGD("MAIN", "Initializing communication services");
                     initNimble();
-                    // initWM();
-                    // initMQTT();
+                    initWM();
+                    initMQTT();
                     initialized = true;
                     vTaskDelete(nullptr);
                 }
